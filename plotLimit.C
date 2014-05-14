@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <stdlib.h>
 //#define __size_t unsigned // needed for glob.h!!
@@ -52,8 +53,8 @@ TString par2latex(const TString& parname)
 
 float parmin(const TString& parname)
 {
-  if (parname == "param1" )  return -3.75;
-  if (parname == "param2" ) return -1.25;
+  if (parname == "param1" )  return -40;
+  if (parname == "param2" ) return -100;
 
   return -999;
 }
@@ -62,8 +63,8 @@ float parmin(const TString& parname)
 
 float parmax(const TString& parname)
 {
-  if (parname == "param1" )  return 3.75;
-  if (parname == "param2" ) return 1.25;
+  if (parname == "param1" )  return 40;
+  if (parname == "param2" ) return 100;
 
   return -999;
 }
@@ -405,12 +406,10 @@ void fillGraphsFromFilesDeltaNLL( const TString& par1name,
 				  map<string,TGraph2D *>& m_graphs)
 {
 
-  std::cout << "fillGraphsFromFilesDeltaNLL 1" << std::endl;
-
-  keys.push_back("exp68");
+  //keys.push_back("exp68");
   keys.push_back("exp95");
-  keys.push_back("exp99");
-  //keys.push_back("obs95");
+  //keys.push_back("exp99");
+  keys.push_back("obs95");
 
   TGraph2D *grobs = new TGraph2D();
   TGraph2D *grexp = new TGraph2D();
@@ -457,7 +456,10 @@ void fillGraphsFromFilesDeltaNLL( const TString& par1name,
 	  continue;
 	}
 
-      if( !iToy)             {grobs->SetPoint(nobs++,par1,par2,2*deltaNLL); assert(0);}
+      if (deltaNLL > 9000)
+	continue;
+      
+      if( !iToy)             {grobs->SetPoint(nobs++,par1,par2,2*deltaNLL); }
       else if (iToy == -1)   {grexp->SetPoint(nexp++,par1,par2,2*deltaNLL); }
       else {
 	cerr << "Unexpected value for iToy, = " << iToy << endl;
@@ -471,8 +473,8 @@ void fillGraphsFromFilesDeltaNLL( const TString& par1name,
   } // file loop
   cout << endl;
 
-  m_graphs["exp68"] = (TGraph2D*)grexp->Clone("graph2Dexp68");
-  m_graphs["exp99"] = (TGraph2D*)grexp->Clone("graph2Dexp99");
+  //m_graphs["exp68"] = (TGraph2D*)grexp->Clone("graph2Dexp68");
+  //m_graphs["exp99"] = (TGraph2D*)grexp->Clone("graph2Dexp99");
 
 #if 0
   TCanvas *canv = new TCanvas("tester","tester",500,500);
@@ -722,9 +724,9 @@ draw2DLimitContours(map<string,TList *>& m_contours,
   TCanvas *finalPlot = new TCanvas("final","limits",500,500);
   finalPlot->cd();
 
-  cout << "Drawing expected 68%" << endl;
+  cout << "Drawing expected 95%" << endl;
 
-  TList *contLevel = m_contours["exp68"];
+  TList *contLevel = m_contours["exp95"];
   TGraph *curv;
 
   std::cout << "m_contours.size() = " << m_contours.size() << std::endl;
@@ -740,31 +742,39 @@ draw2DLimitContours(map<string,TList *>& m_contours,
 
   curv = (TGraph*)(contLevel->First());
 
-  curv->GetXaxis()->SetLimits(parmin(par1),parmax(par1));
-  curv->GetYaxis()->SetRangeUser(parmin(par2),parmax(par2));
 
-  curv->SetTitle();
-  curv->GetXaxis()->SetTitle(par2latex(par1));
-  curv->GetXaxis()->SetTitleFont(42);
-  curv->GetYaxis()->SetTitle(par2latex(par2));
-  curv->GetYaxis()->SetTitleFont(42);
-  curv->GetYaxis()->SetTitleOffset(1.20);
 
   for (int i=0; i<contLevel->GetSize(); i++) {
     assert(curv);
     curv->SetLineColor(kBlue);
     curv->SetLineWidth(2);
     curv->SetLineStyle(9);
-    if (!i) {
+
+    curv->GetXaxis()->SetLimits(parmin(par1),parmax(par1));
+    curv->GetYaxis()->SetRangeUser(parmin(par2),parmax(par2));
+    
+    curv->SetTitle();
+    curv->GetXaxis()->SetTitle(par2latex(par1));
+    curv->GetXaxis()->SetTitleFont(42);
+    curv->GetYaxis()->SetTitle(par2latex(par2));
+    curv->GetYaxis()->SetTitleFont(42);
+    curv->GetYaxis()->SetTitleOffset(1.20);
+  
+    if (i == 1){
+
+      //    if (!i) {
       curv->Draw("AC");
-      legend->AddEntry(curv,"Expected 68% C.L.","L");
-    } else 
-      curv->Draw("SAME C");
+      legend->AddEntry(curv,"Expected 95% C.L.","L");
+      //    } else 
+      //      curv->Draw("SAME C");
+
+    }
+
     curv=(TGraph *)(contLevel->After(curv));
   }
 
   cout << "Drawing expected 95%" << endl;
-  
+  /*
   contLevel = m_contours["exp95"];
 
   curv = (TGraph*)(contLevel->First());
@@ -777,6 +787,10 @@ draw2DLimitContours(map<string,TList *>& m_contours,
     if (!i) legend->AddEntry(curv,"Expected 95% C.L.","L");
     curv=(TGraph *)(contLevel->After(curv));
   }
+
+  */
+
+  /*
 
   cout << "Drawing expected 99%" << endl;
 
@@ -791,8 +805,11 @@ draw2DLimitContours(map<string,TList *>& m_contours,
     curv=(TGraph *)(contLevel->After(curv));
   }
 
-  
+  */  
+
   contLevel = m_contours["obs95"];
+
+  std::cout << "contLevel = " << contLevel << std::endl;
 
   if (contLevel) {
     cout << "Drawing obs95" << endl;
@@ -800,9 +817,15 @@ draw2DLimitContours(map<string,TList *>& m_contours,
     curv = (TGraph*)(contLevel->First());
 
     for (int i=0; i<contLevel->GetSize(); i++) {
-      curv->Draw("SAME C");
-      curv->SetLineWidth(2);
-      if (!i) legend->AddEntry(curv,"Observed 95% C.L.","L");
+
+      if (i == 1){
+
+	curv->Draw("SAME C");
+	curv->SetLineWidth(2);
+	legend->AddEntry(curv,"Observed 95% C.L.","L");
+      
+      }
+      
       curv=(TGraph *)(contLevel->After(curv));
     }
   }
@@ -1059,7 +1082,7 @@ draw1DLimit(map<string,TGraph2D *> m_graphs,
 // to plot only expected limit, just omit the observed limit file from
 // the fileglob
 
-void plotLimit(std::string expected_filename, std::string PARAM1_LABEL, std::string PARAM2_LABEL)
+void plotLimit(std::string expected_filename, std::string observed_filename, std::string PARAM1_LABEL, std::string PARAM2_LABEL)
 {
 
   param1_label=PARAM1_LABEL;
@@ -1073,6 +1096,7 @@ void plotLimit(std::string expected_filename, std::string PARAM1_LABEL, std::str
   //getFileNames(fileglob, fnames);
 
   fnames.push_back(expected_filename);
+  fnames.push_back(observed_filename);
   //fnames.push_back(expected_filename);
   //fnames.push_back("/home/anlevin/2d_limit_fw/CMSSW_6_1_1/src/CombinedEWKAnalysis/CommonTools/test/higgsCombineTest.MultiDimFit.mH120.expected.root");
   //fnames.push_back("/home/anlevin/2d_limit_fw/CMSSW_6_1_1/src/CombinedEWKAnalysis/CommonTools/test/higgsCombineTest.MultiDimFit.mH120.observed.root");
@@ -1124,7 +1148,7 @@ void plotLimit(std::string expected_filename, std::string PARAM1_LABEL, std::str
     m_contourlevels["exp68"] = 2.3;
     m_contourlevels["exp95"] = 5.99;
     m_contourlevels["exp99"] = 9.21;
-    //m_contourlevels["obs95"] = 5.99;
+    m_contourlevels["obs95"] = 5.99;
   }
   else if (fnames.size() == 1) {  
     fillGraphsFromTextTables          (fnames[0],keys,m_graphs);
@@ -1171,7 +1195,7 @@ void plotLimit(std::string expected_filename, std::string PARAM1_LABEL, std::str
 
   collectContours(m_graphs,keys,m_contourlevels,m_contours);
 
-  TLegend *legend = new TLegend(0.212,0.686,0.554,0.917,"","NDC");
+  TLegend *legend = new TLegend(0.212,0.286,0.554,0.417,"","NDC");
   legend->SetFillStyle(0);
   legend->SetBorderSize(0);
   legend->SetHeader("CMS Preliminary");
@@ -1195,5 +1219,5 @@ void plotLimit(std::string expected_filename, std::string PARAM1_LABEL, std::str
 #endif
 
   TFile * f = new TFile("output_file.root","RECREATE");
-    m_graphs["exp68"]->Write();
+  //  m_graphs["exp68"]->Write();
 }
