@@ -85,11 +85,13 @@ print "int((maxparam1-minparam1)/param1interval) = "+str(int((maxparam1-minparam
 print "int((maxparam2-minparam2)/param2interval) = "+str(int((maxparam2-minparam2)/param2interval))
 
 hist=TProfile2D("myhist","myhist",int((maxparam1-minparam1)/param1interval + 0.1)+1,minparam1-param1interval/2,maxparam1+param2interval/2, int((maxparam2-minparam2)/param2interval + 0.1)+1,minparam2-param2interval/2,maxparam2+param2interval/2)
+hist2=TProfile2D("myhist2","myhist2",int((maxparam1-minparam1)/param1interval + 0.1)+1,minparam1-param1interval/2,maxparam1+param2interval/2, int((maxparam2-minparam2)/param2interval + 0.1)+1,minparam2-param2interval/2,maxparam2+param2interval/2)
 
 graph.GetXaxis().SetRangeUser(10,20)
 graph.GetYaxis().SetRangeUser(-35,-25)
 
-tree.Draw("deltaNLL:param2:param1 >> myhist","deltaNLL > 5.99/2","prof2d,colz")
+tree.Draw("1:param2:param1 >> myhist","deltaNLL > 5.99/2","prof2d,colz")
+tree.Draw("-1:param2:param1 >> myhist2","deltaNLL < 5.99/2","prof2d,colz")
 #tree.Draw("param1:param2 >> myhist","deltaNLL ","")
 
 gDirectory.ls()
@@ -110,16 +112,36 @@ gDirectory.ls()
 
 
 
+gStyle.SetFuncStyle(1)
+gStyle.SetFuncWidth(1)
 
+hist.SetTitle("")
+hist2.SetTitle("")
+hist.GetXaxis().SetTitle("F_{S0} (TeV^{-4})")
+hist.GetYaxis().SetTitle("F_{S1} (TeV^{-4})")
+hist.SetStats(0)
+hist2.SetStats(0)
 
-hist.Draw("colz")
+hist.Draw("col")
+hist2.Draw("SAME col")
 
 fcontour.ls()
 
 g=fcontour.Get("Graph")
 
+g.SetLineWidth(2)
+g.SetLineStyle(1)
+
 g.SetLineColor(kBlack)
 
-g.Draw("SAME")
+g.SetTitle("")
+
+
+
+g.Draw("C SAME")
+
+gPad.Update()
+
+c1.SaveAs("contour_check.pdf")
 
 raw_input()
