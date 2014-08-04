@@ -32,6 +32,8 @@ f_observed_contour=TFile(observedcontourfilename,"r")
 g_exp=f_expected_contour.Get("Graph")
 g_obs=f_observed_contour.Get("Graph")
 
+g_obs.SetLineWidth(2)
+
 SMpoint = TGraph(1);
 SMpoint.SetPoint(1,0,0);
 
@@ -43,7 +45,7 @@ legend.SetTextFont(42);
 
 legend.AddEntry(g_exp,"Expected 95% CL","L")
 legend.AddEntry(g_obs,"Observed 95% CL","L")
-
+legend.AddEntry(SMpoint,"SM","Po")
 
 
 g_exp.Draw("AC")
@@ -51,7 +53,7 @@ g_obs.Draw("C")
 SMpoint.Draw("SAME Po");
 legend.Draw()
 
-CMSLabel = TLatex (0.18, 0.95, "#bf{CMS}");
+CMSLabel = TLatex (0.18, 0.95, "#bf{CMS (preliminary)}");
 CMSLabel.SetNDC ();
 CMSLabel.SetTextAlign (10);
 CMSLabel.SetTextFont (42);
